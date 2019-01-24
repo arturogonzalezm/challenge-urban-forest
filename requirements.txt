@@ -1,2 +1,2 @@
-Shapely==1.7a1
+Shapely==1.6.4.post2
 pyspark==2.4.0
