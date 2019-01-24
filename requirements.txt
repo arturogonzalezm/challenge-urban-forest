@@ -1,0 +1,2 @@
+Shapely==1.7a1
+pyspark==2.4.0
