@@ -40,7 +40,8 @@ interested_frame = sql_context.sql("SELECT sa2_name16, geometry.coordinates as c
 
 interested_frame.registerTempTable('interested_table')
 user_define_function = func.udf(calculate_multipolygon_area, FloatType())
-gr = sql_context.sql("SELECT sa2_name16, collect_list(coordinates) AS multipolygon FROM interested_table GROUP BY sa2_name16")
+gr = sql_context.sql(
+    "SELECT sa2_name16, collect_list(coordinates) AS multipolygon FROM interested_table GROUP BY sa2_name16")
 
 # gr = sql_context.sql("SELECT sa2_name16, collect_list(clean_coordinates) AS multipolygon FROM interested_table GROUP BY sa2_name16")
 
@@ -69,11 +70,14 @@ df1 = gr.withColumn('area', user_define_function('multipolygon')).withColumnRena
 
 #########################################forest dataframe
 match = re.compile('(\s[^\s]*)\s')
+
+
 def convert(value):
     geometry_type, coordinates = value.split(' ', 1)
     geometry_type = geometry_type.strip()
     standardized_coordinates = match.sub(r'\1,', coordinates.strip())
     return f'{geometry_type} {standardized_coordinates}'
+
 
 schema = StructType([
     StructField('area', FloatType(), nullable=False),
@@ -82,20 +86,22 @@ schema = StructType([
 df2 = sql_context.read.format("com.databricks.spark.csv").option("header", "false").option('delimiter', ' '). \
     load("/Users/arturogonzalez/PycharmProjects/challenge-urban-forest/melb_urban_forest_2016.txt/part-*",
          schema=schema)
-df2 = df2.withColumn('polygon_formatted', func.udf(convert, StringType())('polygon')).drop('polygon').withColumnRenamed('polygon_formatted', 'polygon')
+df2 = df2.withColumn('polygon_formatted', func.udf(convert, StringType())('polygon')).drop('polygon').withColumnRenamed(
+    'polygon_formatted', 'polygon')
 
 
 def join_condition(multipolygons, polygon):
-
     polygon_object = wkt.loads(polygon)
 
     return may_intersect_modified(multipolygons, polygon_object)
 
 
 join_condition_udf = func.udf(join_condition, BooleanType())
-joined = df1.select(func.col("suburb_name"), func.col("multipolygon"), func.col("area").alias('suburb_area')).crossJoin(df2).where(join_condition_udf(df1.multipolygon, df2.polygon))
+joined = df1.select(func.col("suburb_name"), func.col("multipolygon"), func.col("area").alias('suburb_area')).crossJoin(
+    df2).where(join_condition_udf(df1.multipolygon, df2.polygon))
 joined.registerTempTable('joined_table')
-grouped_df = sql_context.sql('select suburb_name, first(multipolygon) as multipolygon, first(suburb_area) as suburb_area, sum(area) as area, collect_list(polygon) as forest_multipolygon from joined_table group by suburb_name')
+grouped_df = sql_context.sql(
+    'select suburb_name, first(multipolygon) as multipolygon, first(suburb_area) as suburb_area, sum(area) as area, collect_list(polygon) as forest_multipolygon from joined_table group by suburb_name')
 
 
 def calculate_forest_rate(multipolygons, forest_multipolygon, suburb_area):
@@ -104,6 +110,7 @@ def calculate_forest_rate(multipolygons, forest_multipolygon, suburb_area):
     return round(intersection_area(merged_suburb, merge_forest) / suburb_area, 3)
 
 
-result_df = grouped_df.withColumn('per', func.udf(calculate_forest_rate, FloatType())('multipolygon', 'forest_multipolygon', 'suburb_area')).orderBy(func.desc("per"))
+result_df = grouped_df.withColumn('per',
+                                  func.udf(calculate_forest_rate, FloatType())('multipolygon', 'forest_multipolygon',
+                                                                               'suburb_area')).orderBy(func.desc("per"))
 result_df.show()
-
