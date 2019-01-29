@@ -62,7 +62,7 @@ Click the PyCharm's play button to run calculate.py
 ```
 ## PySpark UI Benchmarks
 
-![benchmarks](https://github.com/arturosolutions/challenge-urban-forest/benchmarks.png)
+![benchmarks](https://github.com/arturosolutions/challenge-urban-forest/blob/master/images/benchmarks.png)
 ----
 
 MIT License
