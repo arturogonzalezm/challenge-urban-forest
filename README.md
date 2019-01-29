@@ -30,7 +30,7 @@ Some relevant info here:
 
 ## Instructions
 
-Click the PyCharm's play button to run pyspark_get_greenest_areas.py
+Click the PyCharm's play button to run pyspark_get_greenest_suburbs.py
 
 ## Results/Output
 
