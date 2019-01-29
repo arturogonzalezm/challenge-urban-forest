@@ -26,7 +26,8 @@ Some relevant info here:
 
 - PyCharm
 - Python 3.6.5
-- PySpark 2.3.2
+- PySpark 2.3.1 or 2.3.2
+- Operative System MacOS
 
 ## Instructions
 
