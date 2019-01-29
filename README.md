@@ -1,4 +1,4 @@
-# Eliiza Urban Forest Challenge
+# Urban Forest Challenge
 
 ## Intro
 
