@@ -75,7 +75,6 @@ result = sql_context.sql(
     'select first(suburb_name) as suburb_name, suburb_code, first(multipolygon) as multipolygon, first(suburb_area) '
     'as suburb_area, collect_list(polygon) as forest_multipolygon from joined_table group by suburb_code')
 
-
 result = result.withColumn('per', func.udf(calculate_forest_rate, FloatType())('multipolygon', 'forest_multipolygon',
                                                                                'suburb_area'))
 result = result.drop('multipolygon').drop('suburb_area').drop('forest_multipolygon')

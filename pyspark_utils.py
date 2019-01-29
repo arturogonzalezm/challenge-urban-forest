@@ -6,7 +6,6 @@ from polygon_utils import merge_multi_polygons, multi_polygon_area, to_shape, in
 
 
 def calculate_multipolygon_area(multipolygons):
-
     merged = merge_multi_polygons(*multipolygons)
     return multi_polygon_area(merged)
 
@@ -17,8 +16,10 @@ def calculate_multipolygon_bounds(multipolygons):
         bounds.append(to_shape(m).bounds)
     return bounds
 
+
 # regex to convert geometry str to proper format
 match = re.compile('(\s[^\s]*)\s')
+
 
 def convert(value):
     """
@@ -29,16 +30,19 @@ def convert(value):
     standardized_coordinates = match.sub(r'\1,', coordinates.strip())
     return f'{geometry_type} {standardized_coordinates}'
 
+
 def calculate_forest_bound(polygon):
     """
     To return polygon bounds
     """
     return wkt.loads(polygon).bounds
 
+
 def join_condition(suburb_bound, forest_bound):
     """
     Condition that suburb has intersection with the forest polygon
     """
+
     def intersect(box_a, box_b):
         a_min_x, a_min_y, a_max_x, a_max_y = box_a
         b_min_x, b_min_y, b_max_x, b_max_y = box_b
@@ -52,6 +56,7 @@ def join_condition(suburb_bound, forest_bound):
             return True
 
     return False
+
 
 def calculate_forest_rate(multipolygons, forest_multipolygon, suburb_area):
     """
