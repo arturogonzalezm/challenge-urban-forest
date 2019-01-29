@@ -3,22 +3,17 @@ import re
 from pyspark import SparkContext, SparkConf
 from pyspark.sql import SQLContext
 from pyspark.sql import functions as func
-from pyspark.sql.functions import pandas_udf, PandasUDFType
-from pyspark.sql.types import FloatType, StringType, StructType, StructField, MapType, ArrayType, Row, DataType, \
-    BooleanType
+from pyspark.sql.types import FloatType, StringType, StructType, StructField, ArrayType, BooleanType
 from shapely import wkt
-from shapely.geometry import shape, Polygon, mapping, MultiPolygon
-
-from polygon_utils import multi_polygon_area, merge_multi_polygons, may_intersect, intersection_area, \
-    may_intersect_modified, to_shape
+from polygon_utils import multi_polygon_area, merge_multi_polygons, intersection_area, to_shape
 
 config = SparkConf().setAppName('Urban Forest')
 conf = (config.setMaster('local[*]')
-        .set('spark.executor.memory', '4G')
+        .set('spark.executor.memory', '8G')
         .set('spark.num.executors', '8')
-        # .set('spark.executor.cores', '2')
+        .set('spark.executor.cores', '4')
         .set('spark.driver.memory', '45G')
-        .set('spark.driver.maxResultSize', '10G')).set('default.parallelism', 2)
+        .set('spark.driver.maxResultSize', '10G'))
 
 
 def calculate_multipolygon_area(multipolygons):
@@ -49,7 +44,8 @@ df = df.drop('_corrupt_record').dropna()
 
 # extract nested coordinates data
 df.registerTempTable("raw")
-interested_frame = sql_context.sql("select sa2_name16 as suburb_name , sa2_main16 as suburb_code, geometry.coordinates as coordinates FROM raw")
+interested_frame = sql_context.sql(
+    "select sa2_name16 as suburb_name , sa2_main16 as suburb_code, geometry.coordinates as coordinates FROM raw")
 # clean coordinates data
 interested_frame.registerTempTable('interested_table')
 user_define_function = func.udf(calculate_multipolygon_area, FloatType())
@@ -61,11 +57,10 @@ df1 = gr.withColumn('suburb_area', user_define_function('multipolygon'))
 multipolygons_bounds_udf = func.udf(calculate_multipolygon_bounds, ArrayType(ArrayType(FloatType())))
 df1 = df1.withColumn('suburb_bound', multipolygons_bounds_udf('multipolygon'))
 
-
-
 #########################################forest dataframe
 
 match = re.compile('(\s[^\s]*)\s')
+
 
 def convert(value):
     geometry_type, coordinates = value.split(' ', 1)
@@ -118,11 +113,12 @@ joined = joined.drop('suburb_bound').drop('area').drop('forest_bound')
 
 joined.registerTempTable('joined_table')
 sql_context.cacheTable("joined_table")
-a = sql_context.sql('select count(*) from joined_table')
-a.show()
-# result = sql_context.sql(
-#     'select suburb_code, first(multipolygon) as multipolygon, first(suburb_area) as suburb_area, collect_list(polygon) '
-#     'as forest_multipolygon from joined_table group by suburb_code')
+
+result = sql_context.sql(
+    'select first(suburb_name) as suburb_name, suburb_code, first(multipolygon) as multipolygon, first(suburb_area) as suburb_area, collect_list(polygon) '
+    'as forest_multipolygon from joined_table group by suburb_code')
+
+
 # forest_grouped = sql_context.sql(
 #     'select suburb_code, collect_list(polygon) as forest_multipolygon from joined_table group by suburb_code')
 
@@ -130,16 +126,14 @@ a.show()
 
 # forest_grouped_p = forest_grouped.repartition(1)
 # result = df1p1.join(forest_grouped_p, df1.suburb_name == forest_grouped.suburb_name, how='inner')
-# result.show()
 
-# def calculate_forest_rate(multipolygons, forest_multipolygon, suburb_area):
-#     raise ValueError('test')
-#     merged_suburb = merge_multi_polygons(*multipolygons)
-#     merge_forest = merge_multi_polygons(*[wkt.loads(m) for m in forest_multipolygon])
-#     return round(intersection_area(merged_suburb, merge_forest) / suburb_area, 3)
-#
-# result = result.withColumn('per', func.udf(calculate_forest_rate, FloatType())('multipolygon', 'forest_multipolygon', 'suburb_area'))
-#
-# result.show(n=2)
-# result = result.orderBy('per', ascending=False)
-# result.show(n=2)
+def calculate_forest_rate(multipolygons, forest_multipolygon, suburb_area):
+    merged_suburb = merge_multi_polygons(*multipolygons)
+    merge_forest = merge_multi_polygons(*[wkt.loads(m) for m in forest_multipolygon])
+    return round(intersection_area(merged_suburb, merge_forest) / suburb_area, 3)
+
+
+result = result.withColumn('per', func.udf(calculate_forest_rate, FloatType())('multipolygon', 'forest_multipolygon',
+                                                                               'suburb_area'))
+result = result.drop('multipolygon').drop('suburb_area').drop('forest_multipolygon')
+result.orderBy('per', ascending=False).show()
