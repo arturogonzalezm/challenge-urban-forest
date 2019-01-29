@@ -34,7 +34,6 @@ print(exhibitionBuildingArea)
 weWorkBlockArea = multi_polygon_area([weWorkBlockPolygon])
 print(weWorkBlockArea)
 
-
 merge = merge_multi_polygons([exhibitionBuildingPolygon], [weWorkBlockPolygon])
 
 

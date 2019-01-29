@@ -27,12 +27,12 @@ df = df.drop('_corrupt_record').dropna()
 
 df.registerTempTable("raw")
 interested_frame = sql_context.sql(
-    "select sa2_name16 as suburb_name , sa2_main16 as suburb_code, geometry.coordinates as coordinates FROM raw")
+    "SELECT sa2_name16 AS suburb_name , sa2_main16 AS suburb_code, geometry.coordinates AS coordinates FROM raw")
 
 # group and aggregate table by suburb
 interested_frame.registerTempTable('interested_table')
 gr = sql_context.sql(
-    "SELECT suburb_name, first(suburb_code) as suburb_code, collect_list(coordinates) AS multipolygon "
+    "SELECT suburb_name, FIRST(suburb_code) AS suburb_code, collect_list(coordinates) AS multipolygon "
     "FROM interested_table GROUP BY suburb_name")
 
 # calculate suburb area
@@ -72,10 +72,10 @@ joined = joined.drop('suburb_bound').drop('area').drop('forest_bound')
 joined.registerTempTable('joined_table')
 sql_context.cacheTable("joined_table")
 result = sql_context.sql(
-    'select first(suburb_name) as suburb_name, suburb_code, first(multipolygon) as multipolygon, first(suburb_area) '
-    'as suburb_area, collect_list(polygon) as forest_multipolygon from joined_table group by suburb_code')
+    'SELECT first(suburb_name) AS suburb_name, suburb_code, FIRST(multipolygon) AS multipolygon, FIRST(suburb_area) '
+    'AS suburb_area, collect_list(polygon) AS forest_multipolygon FROM joined_table GROUP BY suburb_code')
 
-result = result.withColumn('per', func.udf(calculate_forest_rate, FloatType())('multipolygon', 'forest_multipolygon',
+result = result.withColumn('percentage_%', func.udf(calculate_forest_rate, FloatType())('multipolygon', 'forest_multipolygon',
                                                                                'suburb_area'))
 result = result.drop('multipolygon').drop('suburb_area').drop('forest_multipolygon')
-result.orderBy('per', ascending=False).show()
+result.orderBy('percentage_%', ascending=False).show()

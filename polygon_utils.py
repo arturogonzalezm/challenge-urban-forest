@@ -82,7 +82,6 @@ def merge_multi_polygons(*multi_polygons):
 
 
 def may_intersect(multi_polygon_a, multi_polygon_b):
-
     multi_polygon_a = to_shape(multi_polygon_a)
     multi_polygon_b = to_shape(multi_polygon_b)
     a_min_x, a_min_y, a_max_x, a_max_y = multi_polygon_a.bounds
@@ -100,9 +99,9 @@ def may_intersect_modified(multi_polygons, multi_polygon_b):
         for polygon in multi_polygon:
             a_min_x, a_min_y, a_max_x, a_max_y = Polygon(list(chain(*polygon))).bounds
             if a_min_y <= b_max_y and \
-               a_max_x >= b_min_x and \
-               a_max_y >= b_min_y and \
-               a_min_x <= b_max_x:
+                    a_max_x >= b_min_x and \
+                    a_max_y >= b_min_y and \
+                    a_min_x <= b_max_x:
                 return True
 
     return False
