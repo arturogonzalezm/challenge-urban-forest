@@ -18,6 +18,8 @@ conf = (config.setMaster('local[*]')
         .set('spark.driver.maxResultSize', '10G'))
 
 sc = SparkContext(conf=conf)
+# Set new log level: "ALL", "DEBUG", "ERROR", "FATAL", "INFO", "OFF", "TRACE", "WARN"
+sc.setLogLevel("INFO")
 sql_context = SQLContext(sc)
 
 # read raw data
