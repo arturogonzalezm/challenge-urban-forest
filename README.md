@@ -36,30 +36,31 @@ Click the PyCharm's play button to run pyspark_get_greenest_suburbs.py
 ## Results/Output
 
 ```commandline
-+--------------------+-----------+-----+
-|         suburb_name|suburb_code|  per|
-+--------------------+-----------+-----+
-|           Parkville|  206041124|0.216|
-|  South Yarra - West|  206041125| 0.21|
-|           Southbank|  206041126|0.205|
-|      East Melbourne|  206041119|0.188|
-|             Carlton|  206041117|0.156|
-|   Kensington (Vic.)|  206041121|0.134|
-|     North Melbourne|  206041123|0.131|
-|           Melbourne|  206041122|0.088|
-|Flemington Raceco...|  206041120| 0.07|
-|Carlton North - P...|  206071140|0.069|
-|Port Melbourne In...|  206051131|0.028|
-|           Docklands|  206041118|0.026|
-|      West Melbourne|  206041127|0.021|
-|   Prahran - Windsor|  206061136|  0.0|
-|     Richmond (Vic.)|  206071144|  0.0|
-|         Collingwood|  206071141|  0.0|
-|           Brunswick|  206011105|  0.0|
-|          Ascot Vale|  206031113|  0.0|
-|      Port Melbourne|  206051130|  0.0|
-|          Flemington|  206031115|  0.0|
-+--------------------+-----------+-----+
++--------------------+-----------+------------+
+|         suburb_name|suburb_code|percentage_%|
++--------------------+-----------+------------+
+|           Parkville|  206041124|       0.216|
+|  South Yarra - West|  206041125|        0.21|
+|           Southbank|  206041126|       0.205|
+|      East Melbourne|  206041119|       0.188|
+|             Carlton|  206041117|       0.156|
+|   Kensington (Vic.)|  206041121|       0.134|
+|     North Melbourne|  206041123|       0.131|
+|           Melbourne|  206041122|       0.088|
+|Flemington Raceco...|  206041120|        0.07|
+|Carlton North - P...|  206071140|       0.069|
+|Port Melbourne In...|  206051131|       0.028|
+|           Docklands|  206041118|       0.026|
+|      West Melbourne|  206041127|       0.021|
+|   Prahran - Windsor|  206061136|         0.0|
+|             Fitzroy|  206071142|         0.0|
+|  South Yarra - East|  206061137|         0.0|
+|           Brunswick|  206011105|         0.0|
+|          Ascot Vale|  206031113|         0.0|
+|      Port Melbourne|  206051130|         0.0|
+|          Flemington|  206031115|         0.0|
++--------------------+-----------+------------+
+
 ```
 ## PySpark UI Benchmarks
 
