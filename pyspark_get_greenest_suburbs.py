@@ -74,10 +74,10 @@ joined = joined.drop('suburb_bound').drop('area').drop('forest_bound')
 joined.registerTempTable('joined_table')
 sql_context.cacheTable("joined_table")
 result = sql_context.sql(
-    'SELECT first(suburb_name) AS suburb_name, suburb_code, FIRST(multipolygon) AS multipolygon, FIRST(suburb_area) '
+    'SELECT FIRST(suburb_name) AS suburb_name, suburb_code, FIRST(multipolygon) AS multipolygon, FIRST(suburb_area) '
     'AS suburb_area, collect_list(polygon) AS forest_multipolygon FROM joined_table GROUP BY suburb_code')
 
-result = result.withColumn('percentage_%', func.udf(calculate_forest_rate, FloatType())('multipolygon', 'forest_multipolygon',
-                                                                               'suburb_area'))
+result = result.withColumn('percentage_%', func.udf(calculate_forest_rate, FloatType())(
+    'multipolygon', 'forest_multipolygon', 'suburb_area'))
 result = result.drop('multipolygon').drop('suburb_area').drop('forest_multipolygon')
 result.orderBy('percentage_%', ascending=False).show()
